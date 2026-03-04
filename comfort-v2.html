@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>your little corner 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+:root {
+  --cream: #FAF6EF;
+  --warm:  #F5ECD7;
+  --sage:  #8A9E7A;
+  --moss:  #5C7A4E;
+  --blush: #E8C4B0;
+  --rose:  #C4826A;
+  --brown: #7A5C48;
+  --text:  #3D2E22;
+  --muted: #9A8070;
+}
+
+body {
+  font-family: 'Lora', serif;
+  background: var(--cream);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><text y='22' font-size='20'>🌸</text></svg>") 14 14, auto;
+}
+
+/* ========== HAPPINESS METER ========== */
+#meter-wrap {
+  position: fixed;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.meter-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: 'Lora', serif;
+}
+
+.meter-track {
+  width: 10px;
+  height: 160px;
+  background: rgba(138,158,122,0.15);
+  border-radius: 20px;
+  border: 1.5px solid rgba(138,158,122,0.3);
+  position: relative;
+  overflow: visible;
+}
+
+.meter-fill {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, #A8D48A, #5C7A4E);
+  border-radius: 20px;
+  transition: height 0.6s cubic-bezier(0.34,1.2,0.64,1);
+  height: 0%;
+}
+
+.meter-face {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.4rem;
+  transition: bottom 0.6s cubic-bezier(0.34,1.2,0.64,1);
+  bottom: -10px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+@media (max-width: 600px) {
+  #meter-wrap { left: 10px; }
+  .meter-track { height: 120px; width: 8px; }
+  .meter-label { display: none; }
+  .meter-face { font-size: 1.1rem; }
+}
+
+/* ========== HAPPINESS FULL SCREEN ========== */
+#happiness-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #FFF0E8, #FAF6EF, #EEF5E8);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 28px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+#happiness-overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.overlay-emoji {
+  font-size: 5rem;
+  animation: popBounce 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  margin-bottom: 24px;
+}
+@keyframes popBounce {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.overlay-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--brown);
+  line-height: 1.2;
+  animation: fadeUp 0.8s 0.3s both;
+  margin-bottom: 16px;
+}
+
+.overlay-sub {
+  font-size: clamp(0.95rem, 3vw, 1.15rem);
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.8;
+  max-width: 420px;
+  animation: fadeUp 0.8s 0.5s both;
+  margin-bottom: 32px;
+}
+
+.overlay-close {
+  padding: 12px 32px;
+  background: transparent;
+  border: 1.5px solid var(--sage);
+  border-radius: 50px;
+  color: var(--moss);
+  font-family: 'Lora', serif;
+  font-size: 0.95rem;
+  font-style: italic;
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: fadeUp 0.8s 0.7s both;
+}
+.overlay-close:hover { background: var(--sage); color: white; }
+
+.overlay-petals {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.overlay-petal {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: overlayPetal var(--d) ease-in-out infinite var(--delay);
+}
+@keyframes overlayPetal {
+  0%   { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 0; }
+  10%  { opacity: 0.8; }
+  100% { transform: translateY(110vh) rotate(360deg) translateX(var(--dx)); opacity: 0; }
+}
+
+/* ========== FLOATING PETALS ========== */
+.petal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  animation: petalFall var(--dur) linear infinite var(--delay);
+  opacity: 0;
+}
+@keyframes petalFall {
+  0%   { transform: translateY(-5vh) rotate(0deg); opacity: 0; }
+  5%   { opacity: 0.6; }
+  95%  { opacity: 0.4; }
+  100% { transform: translateY(105vh) rotate(400deg) translateX(var(--dx)); opacity: 0; }
+}
+
+/* ========== HERO ========== */
+.hero {
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 40px 100px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #EDE6D6 0%, #F5ECD7 55%, #FAF6EF 100%);
+}
+
+.hero-trees {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-content { position: relative; z-index: 2; }
+
+.hero-icon {
+  font-size: 3.5rem;
+  display: block;
+  margin-bottom: 20px;
+  animation: sway 5s ease-in-out infinite;
+}
+@keyframes sway {
+  0%,100% { transform: rotate(-6deg); }
+  50%      { transform: rotate(6deg); }
+}
+
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3.2rem, 13vw, 8rem);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--brown);
+  line-height: 1.05;
+  text-shadow: 2px 4px 24px rgba(122,92,72,0.1);
+  animation: fadeUp 1.2s cubic-bezier(0.34,1.2,0.64,1) both;
+}
+
+.hero-sub {
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 16px;
+  animation: fadeUp 1.2s 0.25s both;
+  letter-spacing: 0.02em;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 36px;
+  z-index: 2;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: bobDown 2s ease-in-out infinite, fadeUp 1s 1s both;
+}
+@keyframes bobDown {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(7px); }
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(28px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ========== SECTIONS ========== */
+.section {
+  padding: 88px 28px;
+  position: relative;
+}
+.section-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.section-tag {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 14px;
+  font-family: 'Lora', serif;
+}
+.section-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.9rem, 5vw, 3.2rem);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--brown);
+  line-height: 1.25;
+  margin-bottom: 36px;
+}
+
+/* ========== LETTER ========== */
+.letter-section { background: var(--warm); }
+
+.letter-card {
+  background: #FFFDF8;
+  border-radius: 4px;
+  padding: 48px 44px;
+  max-width: 640px;
+  margin: 0 auto;
+  box-shadow: 0 4px 40px rgba(122,92,72,0.07);
+  border: 1px solid rgba(196,130,106,0.15);
+  position: relative;
+}
+.letter-card::before {
+  content: '';
+  position: absolute;
+  inset: 48px 44px;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 31px,
+    rgba(138,158,122,0.1) 31px, rgba(138,158,122,0.1) 32px
+  );
+  pointer-events: none;
+}
+.letter-top {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: var(--rose);
+  margin-bottom: 20px;
+  font-size: 1rem;
+  position: relative; z-index: 1;
+}
+.letter-body {
+  font-size: clamp(0.93rem, 2.5vw, 1.03rem);
+  line-height: 2.05;
+  color: var(--text);
+  position: relative; z-index: 1;
+}
+.letter-body p + p { margin-top: 22px; }
+.letter-sign {
+  margin-top: 28px;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: var(--rose);
+  font-size: 1.05rem;
+  position: relative; z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .letter-card { padding: 32px 22px; }
+  .letter-card::before { inset: 32px 22px; }
+}
+
+/* ========== AFFIRMATIONS ========== */
+.affirm-section { background: var(--cream); }
+
+.affirm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+}
+
+.affirm-card {
+  background: #FFFDF8;
+  border-radius: 18px;
+  padding: 28px 22px;
+  border: 1px solid rgba(138,158,122,0.22);
+  box-shadow: 0 2px 16px rgba(122,92,72,0.05);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+}
+.affirm-card:hover {
+  transform: translateY(-6px) rotate(0.4deg);
+  box-shadow: 0 12px 32px rgba(122,92,72,0.1);
+}
+.affirm-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
+.affirm-text {
+  font-style: italic;
+  font-size: 0.94rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+@media (max-width: 500px) {
+  .affirm-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+}
+
+/* ========== MUSIC ========== */
+.music-section {
+  background: linear-gradient(180deg, #EDF2E8 0%, #F5ECD7 100%);
+}
+
+.music-intro {
+  font-style: italic;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 36px;
+}
+
+.music-player {
+  background: #FFFDF8;
+  border-radius: 20px;
+  padding: 28px 28px;
+  border: 1px solid rgba(138,158,122,0.25);
+  box-shadow: 0 4px 32px rgba(92,122,78,0.07);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.now-playing-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.track-list {
+  list-style: none;
+  margin-bottom: 24px;
+}
+.track-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(138,158,122,0.15);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+}
+.track-item:last-child { border-bottom: none; }
+.track-item:hover { padding-left: 8px; }
+.track-item.active { color: var(--moss); }
+
+.track-num {
+  font-size: 0.78rem;
+  color: var(--muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.track-item.active .track-num { color: var(--moss); }
+
+.track-info { flex: 1; }
+.track-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.98rem;
+  color: var(--text);
+  font-style: italic;
+}
+.track-artist {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.track-item.active .track-name { color: var(--moss); }
+
+.track-duration {
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* progress bar */
+.player-progress {
+  height: 3px;
+  background: rgba(138,158,122,0.2);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.player-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sage), var(--moss));
+  border-radius: 4px;
+  width: 0%;
+  transition: width 0.5s linear;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.ctrl-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  color: var(--brown);
+  padding: 8px;
+}
+.ctrl-btn:hover { transform: scale(1.2); }
+.ctrl-btn.play-btn { font-size: 2.2rem; }
+
+.music-note {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ========== CLOSING ========== */
+.closing-section {
+  background: linear-gradient(180deg, #FAF6EF 0%, #EDE6D6 100%);
+  text-align: center;
+  padding: 100px 28px 120px;
+}
+.closing-icon {
+  font-size: 3rem;
+  display: inline-block;
+  animation: sway 4s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+.closing-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--brown);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.closing-sub {
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.85;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* ========== REVEAL ========== */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.in { opacity:1; transform: none; }
+.rd1 { transition-delay: 0.1s; }
+.rd2 { transition-delay: 0.22s; }
+.rd3 { transition-delay: 0.34s; }
+.rd4 { transition-delay: 0.46s; }
+.rd5 { transition-delay: 0.58s; }
+.rd6 { transition-delay: 0.70s; }
+
+/* ========== MOBILE ========== */
+@media (max-width: 600px) {
+  #meter-wrap { left: 8px; }
+  .meter-track { height: 110px; width: 8px; }
+  .meter-label { display: none; }
+  .meter-face { font-size: 1rem; }
+
+  .hero { padding: 60px 20px 90px; }
+  .hero-icon { font-size: 2.8rem; }
+
+  .section { padding: 64px 20px; }
+  .section-heading { font-size: clamp(1.6rem, 7vw, 2.2rem); margin-bottom: 24px; }
+
+  .letter-card { padding: 28px 20px; }
+  .letter-card::before { inset: 28px 20px; }
+  .letter-body { font-size: 0.92rem; line-height: 1.9; }
+
+  .affirm-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .affirm-card { padding: 20px 16px; }
+  .affirm-text { font-size: 0.88rem; }
+
+  .music-player { padding: 20px 16px; }
+  .track-name { font-size: 0.92rem; }
+  .track-artist { font-size: 0.72rem; }
+  .ctrl-btn { font-size: 1.3rem; padding: 6px; }
+  .ctrl-btn.play-btn { font-size: 1.9rem; }
+
+  .overlay-title { font-size: clamp(1.7rem, 8vw, 2.5rem); }
+  .overlay-sub { font-size: 0.92rem; }
+
+  .closing-section { padding: 72px 20px 90px; }
+  .closing-title { font-size: clamp(1.8rem, 9vw, 3rem); }
+}
+
+@media (max-width: 380px) {
+  .affirm-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: clamp(2.8rem, 16vw, 4rem); }
+}
+</style>
+</head>
+<body>
+
+<!-- HAPPINESS METER -->
+<div id="meter-wrap">
+  <span class="meter-label">happiness</span>
+  <div class="meter-track">
+    <div class="meter-fill" id="meter-fill"></div>
+    <div class="meter-face" id="meter-face">😐</div>
+  </div>
+</div>
+
+<!-- HAPPINESS OVERLAY -->
+<div id="happiness-overlay">
+  <div class="overlay-petals" id="overlay-petals"></div>
+  <div class="overlay-emoji">🌸</div>
+  <h2 class="overlay-title">hope this put a tiny<br>smile on your face</h2>
+  <p class="overlay-sub">
+    that is genuinely all that matters.<br>
+    you deserve every bit of happiness, Sara.<br>
+    inshallah everything will be absolutely fine. 🌿
+  </p>
+  <button class="overlay-close" onclick="closeOverlay()">keep scrolling 🌿</button>
+</div>
+
+<!-- PETALS -->
+<div id="petals"></div>
+
+<!-- ======= HERO ======= -->
+<section class="hero">
+  <svg class="hero-trees" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="195" rx="58" ry="78" fill="#C8D9B8" opacity="0.5"/>
+    <rect x="94" y="240" width="12" height="20" fill="#B08060" opacity="0.5"/>
+    <ellipse cx="300" cy="178" rx="72" ry="98" fill="#B8CCA8" opacity="0.45"/>
+    <rect x="293" y="248" width="14" height="12" fill="#A07050" opacity="0.5"/>
+    <ellipse cx="600" cy="170" rx="84" ry="108" fill="#A8C48A" opacity="0.6"/>
+    <rect x="592" y="254" width="16" height="6" fill="#8A6040" opacity="0.7"/>
+    <ellipse cx="840" cy="165" rx="88" ry="112" fill="#9EBD82" opacity="0.6"/>
+    <rect x="832" y="254" width="16" height="6" fill="#8A6040" opacity="0.7"/>
+    <ellipse cx="1120" cy="182" rx="70" ry="92" fill="#C0D4A8" opacity="0.45"/>
+    <rect x="1113" y="248" width="14" height="12" fill="#A07050" opacity="0.5"/>
+    <ellipse cx="1340" cy="192" rx="62" ry="82" fill="#BDD0A5" opacity="0.5"/>
+    <rect x="1333" y="248" width="12" height="12" fill="#B08060" opacity="0.5"/>
+    <ellipse cx="0"    cy="260" rx="130" ry="48" fill="#8DAF6A" opacity="0.65"/>
+    <ellipse cx="250"  cy="262" rx="110" ry="44" fill="#7FA060" opacity="0.6"/>
+    <ellipse cx="500"  cy="260" rx="115" ry="46" fill="#8DAF6A" opacity="0.6"/>
+    <ellipse cx="780"  cy="258" rx="130" ry="50" fill="#82A865" opacity="0.65"/>
+    <ellipse cx="1060" cy="262" rx="115" ry="44" fill="#8DAF6A" opacity="0.6"/>
+    <ellipse cx="1300" cy="260" rx="140" ry="48" fill="#7FA060" opacity="0.65"/>
+    <ellipse cx="1440" cy="262" rx="110" ry="46" fill="#8DAF6A" opacity="0.7"/>
+    <rect x="0" y="256" width="1440" height="4" fill="#A8C87A" opacity="0.45"/>
+    <text x="185"  y="258" font-size="20">🌸</text>
+    <text x="430"  y="260" font-size="18">🌼</text>
+    <text x="690"  y="256" font-size="20">🌺</text>
+    <text x="950"  y="260" font-size="18">🌸</text>
+    <text x="1175" y="257" font-size="20">🌼</text>
+  </svg>
+
+  <div class="hero-content">
+    <span class="hero-icon">🌿</span>
+    <h1 class="hero-title">your little<br>corner</h1>
+    <p class="hero-sub">Sara, this is yours. come back whenever you need it 🌸</p>
+  </div>
+  <div class="scroll-hint">scroll down</div>
+</section>
+
+<!-- ======= LETTER ======= -->
+<section class="section letter-section">
+  <div class="section-inner">
+    <span class="section-tag reveal">a little note</span>
+    <h2 class="section-heading reveal rd1">from someone who<br>cares about you</h2>
+    <div class="letter-card reveal rd2">
+      <div class="letter-top">for you, always</div>
+      <div class="letter-body">
+        <p>Missing home is one of the hardest feelings there is, and especially in situations like this it increases tenfold. I know how hard it must be to stay away from your family right now and it makes complete sense to feel everything you are feeling.</p>
+        <p>Inshallah, they are watched over and protected, and the best thing you can do is exactly what you already do so beautifully — make dua for them. For their safety, their wellbeing, their protection. That is never small. That is everything.</p>
+        <p>I know this little page won't magically make you stop missing home, and it won't fix everything. But if it puts even the tiniest smile on your face, then that is all that matters to me. Because that smile? That is everything.</p>
+        <p>Don't you worry. Inshallah everything will go back to normal, everything will be absolutely fine. And until then, I will always be here trying to make you laugh and smile. Always. 🌸</p>
+      </div>
+      <div class="letter-sign">always yours 🌿</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= REMINDERS ======= -->
+<section class="section affirm-section">
+  <div class="section-inner">
+    <span class="section-tag reveal">just so you know</span>
+    <h2 class="section-heading reveal rd1">things I need you<br>to remember</h2>
+    <div class="affirm-grid">
+      <div class="affirm-card reveal rd1">
+        <span class="affirm-icon">🌸</span>
+        <p class="affirm-text">You are annoyingly, effortlessly beautiful. Not just the way you look. Every single part of you.</p>
+      </div>
+      <div class="affirm-card reveal rd2">
+        <span class="affirm-icon">🤲</span>
+        <p class="affirm-text">Your duas reach where your arms cannot. Keep making them. They are everything.</p>
+      </div>
+      <div class="affirm-card reveal rd3">
+        <span class="affirm-icon">💛</span>
+        <p class="affirm-text">You make everyone around you feel okay. You go the extra mile without ever making it a thing. That is so rare.</p>
+      </div>
+      <div class="affirm-card reveal rd4">
+        <span class="affirm-icon">🏠</span>
+        <p class="affirm-text">Home is not going anywhere. Neither is the love waiting for you there. This is temporary.</p>
+      </div>
+      <div class="affirm-card reveal rd5">
+        <span class="affirm-icon">☕</span>
+        <p class="affirm-text">You are someone's double shot espresso. You make their whole day better just by existing in it.</p>
+      </div>
+      <div class="affirm-card reveal rd6">
+        <span class="affirm-icon">🌙</span>
+        <p class="affirm-text">You are always, always in someone's prayers. Every single night. Never forget that.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= MUSIC ======= -->
+<section class="section music-section">
+  <div class="section-inner">
+    <span class="section-tag reveal">songs for you</span>
+    <h2 class="section-heading reveal rd1">put your earphones in<br>and just breathe</h2>
+    <p class="music-intro reveal rd2">some songs picked just for you. press play, close your eyes for a second.</p>
+    <div class="music-player reveal rd3">
+      <span class="now-playing-label" id="now-playing-label">not playing</span>
+      <ul class="track-list" id="track-list">
+        <li class="track-item" onclick="selectTrack(0)">
+          <span class="track-num">1</span>
+          <div class="track-info">
+            <div class="track-name">Raataan Lambiyan</div>
+            <div class="track-artist">Jubin Nautiyal, Asees Kaur</div>
+          </div>
+          <span class="track-duration">3:50</span>
+        </li>
+        <li class="track-item" onclick="selectTrack(1)">
+          <span class="track-num">2</span>
+          <div class="track-info">
+            <div class="track-name">Tum</div>
+            <div class="track-artist">Murtaza Qizilbash</div>
+          </div>
+          <span class="track-duration">--:--</span>
+        </li>
+        <li class="track-item" onclick="selectTrack(2)">
+          <span class="track-num">3</span>
+          <div class="track-info">
+            <div class="track-name">Hawayein</div>
+            <div class="track-artist">Arijit Singh</div>
+          </div>
+          <span class="track-duration">4:49</span>
+        </li>
+      </ul>
+      <div class="player-progress" id="player-progress" onclick="seekTrack(event)">
+        <div class="player-progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="player-controls">
+        <button class="ctrl-btn" onclick="prevTrack()" title="Previous">⏮</button>
+        <button class="ctrl-btn play-btn" id="play-btn" onclick="togglePlay()">▶️</button>
+        <button class="ctrl-btn" onclick="nextTrack()" title="Next">⏭</button>
+      </div>
+      <p class="music-note">drop your mp3 files in and they will play right here 🎵</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======= CLOSING ======= -->
+<section class="closing-section">
+  <div class="closing-icon reveal">🌸</div>
+  <h2 class="closing-title reveal rd1">you are loved,<br>always.</h2>
+  <p class="closing-sub reveal rd2">
+    this little corner will always be here.<br>
+    come back whenever you need it.
+  </p>
+</section>
+
+<audio id="audio-player" preload="auto"></audio>
+
+<script>
+// ======= PETALS =======
+const petalEmojis = ['🌸','🌼','🍃','🌺'];
+const petalWrap = document.getElementById('petals');
+const isMobile = window.innerWidth < 600;
+for(let i = 0; i < (isMobile ? 10 : 18); i++){
+  const p = document.createElement('div');
+  p.className = 'petal';
+  const em = petalEmojis[Math.floor(Math.random()*petalEmojis.length)];
+  p.textContent = em;
+  p.style.cssText = `left:${Math.random()*100}%;--dur:${10+Math.random()*14}s;--delay:${Math.random()*14}s;--dx:${(Math.random()-0.5)*80}px;font-size:${0.8+Math.random()*0.8}rem;`;
+  petalWrap.appendChild(p);
+}
+
+// ======= CLICK FLOAT =======
+const floatEm = ['🌸','🍃','✨','🌿','🌼','🌺','💛'];
+document.addEventListener('click', e => {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;left:${e.clientX-12}px;top:${e.clientY-12}px;font-size:1.4rem;pointer-events:none;z-index:9998;animation:_fu 1s forwards ease-out;`;
+  el.textContent = floatEm[Math.floor(Math.random()*floatEm.length)];
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1100);
+});
+const st = document.createElement('style');
+st.textContent = `@keyframes _fu{from{opacity:1;transform:translateY(0) scale(1)}to{opacity:0;transform:translateY(-70px) scale(1.3)}}`;
+document.head.appendChild(st);
+
+// ======= HAPPINESS METER =======
+const faces = ['😐','🙂','😊','😄','🥰'];
+const meterFill = document.getElementById('meter-fill');
+const meterFace = document.getElementById('meter-face');
+let meterTriggered = false;
+let lastPercent = 0;
+
+function updateMeter(){
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const rawPct = Math.min(scrollTop / docHeight, 1);
+  const pct = Math.round(rawPct * 100);
+
+  meterFill.style.height = pct + '%';
+  meterFace.style.bottom = `calc(${pct}% - 12px)`;
+
+  const faceIdx = Math.min(Math.floor(rawPct * faces.length), faces.length-1);
+  meterFace.textContent = faces[faceIdx];
+
+  if(pct >= 98 && !meterTriggered){
+    meterTriggered = true;
+    setTimeout(showOverlay, 600);
+  }
+
+  lastPercent = pct;
+}
+
+window.addEventListener('scroll', updateMeter, { passive: true });
+updateMeter();
+
+// ======= OVERLAY =======
+function showOverlay(){
+  const overlay = document.getElementById('happiness-overlay');
+  overlay.classList.add('show');
+
+  // spawn overlay petals
+  const wrap = document.getElementById('overlay-petals');
+  for(let i = 0; i < 20; i++){
+    const p = document.createElement('div');
+    p.className = 'overlay-petal';
+    p.textContent = petalEmojis[Math.floor(Math.random()*petalEmojis.length)];
+    p.style.cssText = `left:${Math.random()*100}%;--d:${3+Math.random()*5}s;--delay:${Math.random()*2}s;--dx:${(Math.random()-0.5)*60}px;font-size:${1+Math.random()}rem;`;
+    wrap.appendChild(p);
+  }
+}
+
+function closeOverlay(){
+  document.getElementById('happiness-overlay').classList.remove('show');
+  meterTriggered = false;
+}
+
+// ======= MUSIC PLAYER =======
+// Replace the src values below with your actual MP3 file paths once uploaded
+const tracks = [
+  { name: 'Raataan Lambiyan', artist: 'Jubin Nautiyal, Asees Kaur', src: 'raataan-lambiyan.mp3' },
+  { name: 'Tum',              artist: 'Murtaza Qizilbash',           src: 'tum.mp3' },
+  { name: 'Hawayein',         artist: 'Arijit Singh',                src: 'hawayein.mp3' },
+];
+
+const audio = document.getElementById('audio-player');
+let currentTrack = -1;
+let isPlaying = false;
+
+function selectTrack(idx){
+  currentTrack = idx;
+  const t = tracks[idx];
+  audio.src = t.src;
+  audio.play().catch(()=>{});
+  isPlaying = true;
+  updatePlayerUI();
+}
+
+function togglePlay(){
+  if(currentTrack === -1){ selectTrack(0); return; }
+  if(isPlaying){ audio.pause(); isPlaying = false; }
+  else { audio.play().catch(()=>{}); isPlaying = true; }
+  updatePlayerUI();
+}
+
+function prevTrack(){
+  if(currentTrack <= 0) currentTrack = tracks.length - 1;
+  else currentTrack--;
+  selectTrack(currentTrack);
+}
+
+function nextTrack(){
+  currentTrack = (currentTrack + 1) % tracks.length;
+  selectTrack(currentTrack);
+}
+
+function seekTrack(e){
+  if(currentTrack === -1) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+audio.addEventListener('ended', nextTrack);
+
+audio.addEventListener('timeupdate', () => {
+  if(!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+});
+
+function updatePlayerUI(){
+  // play button
+  document.getElementById('play-btn').textContent = isPlaying ? '⏸️' : '▶️';
+  // track list highlight
+  document.querySelectorAll('.track-item').forEach((item, i) => {
+    item.classList.toggle('active', i === currentTrack);
+    item.querySelector('.track-num').textContent = i === currentTrack && isPlaying ? '♪' : i+1;
+  });
+  // now playing
+  const label = document.getElementById('now-playing-label');
+  label.textContent = currentTrack >= 0 && isPlaying
+    ? `now playing: ${tracks[currentTrack].name}`
+    : 'not playing';
+}
+
+// ======= SCROLL REVEAL =======
+const reveals = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+reveals.forEach(r => obs.observe(r));
+</script>
+</body>
+</html>
